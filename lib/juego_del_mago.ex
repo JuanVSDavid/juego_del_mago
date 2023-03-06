@@ -19,7 +19,8 @@ defmodule JuegoDelMago do
 
   def termino?(ronda, juegoActual) do
     cond do
-      ronda == 7 or obtenerLosPremiosAcumuladosDelJuego(juegoActual).llantasEncontradas == 4 ->
+      ronda == 7 or obtenerLosPremiosAcumuladosDelJuego(juegoActual).llantasEncontradas == 4 or
+          obtenerLosPremiosAcumuladosDelJuego(juegoActual).errores == 3 ->
         obtenerElResultadoDelJuego(juegoActual)
         true
 
@@ -29,7 +30,8 @@ defmodule JuegoDelMago do
   end
 
   def obtenerElResultadoDelJuego(juegoActual) do
-    IO.puts("!Se ha terminado el juego!")
+    mostrarLasPuertasConSuEstadoActual(juegoActual) |> IO.puts()
+    IO.puts("\n!Se ha terminado el juego!")
 
     %{dineroAcumulado: dinero, llantasEncontradas: conteoDeLlantas} =
       obtenerLosPremiosAcumuladosDelJuego(juegoActual)
@@ -56,11 +58,12 @@ defmodule JuegoDelMago do
   def obtenerLosPremiosAcumuladosDelJuego(juegoActual) do
     Enum.reduce(
       Enum.filter(juegoActual.puertas, & &1.abierta?),
-      %{dineroAcumulado: 0, llantasEncontradas: 0},
+      %{dineroAcumulado: 0, llantasEncontradas: 0, errores: 0},
       fn puerta, acc ->
         %{
           dineroAcumulado: acc.dineroAcumulado + puerta.dinero,
-          llantasEncontradas: acc.llantasEncontradas + if(puerta.tieneLlanta?, do: 1, else: 0)
+          llantasEncontradas: acc.llantasEncontradas + if(puerta.tieneLlanta?, do: 1, else: 0),
+          errores: acc.errores + if(puerta.dinero == 0 and !puerta.tieneLlanta?, do: 1, else: 0)
         }
       end
     )
